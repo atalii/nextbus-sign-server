@@ -15,6 +15,7 @@ pub enum Message {
         seq_num: u8,
         reason: AppRunningReason,
     },
+    Reboot,
 }
 
 #[derive(Debug)]
@@ -142,6 +143,7 @@ impl Message {
 
         match self {
             Ping { .. } => 10,
+            Reboot => 6,
             _ => todo!(),
         }
     }
@@ -150,6 +152,7 @@ impl Message {
         use Message::*;
         match self {
             Ping { seq_num } => vec![*seq_num],
+            Reboot => vec![],
             _ => todo!(),
         }
     }
