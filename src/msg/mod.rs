@@ -1,6 +1,7 @@
 mod ack_content;
 mod app_running;
 pub mod content;
+pub mod content_delete;
 mod debug;
 mod firmware_code;
 mod pong;
@@ -53,6 +54,9 @@ pub enum Message {
         priority: u16,
         payloads: Vec<(content::PayloadType, Vec<u8>)>,
     },
+    ContentDelete {
+        content_id: u16,
+    },
     SyncClock {
         seq_num: u8,
         epoch_time_sec: u32,
@@ -103,6 +107,7 @@ impl Message {
             32 => content::new(payload),
             31 => firmware_code::new(payload),
             33 => ack_content::new(payload),
+            36 => content_delete::new(payload),
             x => todo!("unknown type: {x}"),
         })
     }
@@ -155,6 +160,7 @@ impl Message {
             DebugMsg { .. } => 28,
             ShellCommand { .. } => 80,
             ContentMsg { .. } => 32,
+            ContentDelete { .. } => 33,
             SyncClock { .. } => 26,
             FirmwareCode { .. } => 31,
             _ => todo!(),
@@ -211,6 +217,7 @@ impl Message {
                 }
                 out
             }
+            ContentDelete { content_id } => content_id.to_be_bytes().to_vec(),
             SyncClock {
                 seq_num,
                 epoch_time_sec,

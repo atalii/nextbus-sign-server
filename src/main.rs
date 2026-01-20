@@ -39,32 +39,11 @@ fn handle(mut stream: TcpStream) -> io::Result<()> {
     let addr = stream.peer_addr()?;
     log::info!("Handling connection from: {addr}");
 
-    let msg = Message::ContentMsg {
-        content_id: 0,
-        content_channel: 0,
-        count_impressions: false,
-        display_indefinitely: true,
-        booking_id: 0,
-        priority: 0,
-        payloads: vec![(msg::content::PayloadType::Msg, "ch0".as_bytes().to_vec())],
-    }
-    .encode();
+    let msg = Message::ContentDelete { content_id: 0 }.encode();
     stream.write_all(&msg)?;
 
     let msg = Message::ContentMsg {
-        content_id: 0,
-        content_channel: 1,
-        count_impressions: false,
-        display_indefinitely: true,
-        booking_id: 0,
-        priority: 0,
-        payloads: vec![(msg::content::PayloadType::Msg, "ch1".as_bytes().to_vec())],
-    }
-    .encode();
-    stream.write_all(&msg)?;
-
-    let msg = Message::ContentMsg {
-        content_id: 0,
+        content_id: 0xff,
         content_channel: 2,
         count_impressions: false,
         display_indefinitely: true,
@@ -72,7 +51,7 @@ fn handle(mut stream: TcpStream) -> io::Result<()> {
         priority: 0,
         payloads: vec![(
             msg::content::PayloadType::Msg,
-            "bullshit".as_bytes().to_vec(),
+            "chomp :3".as_bytes().to_vec(),
         )],
     }
     .encode();
