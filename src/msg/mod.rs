@@ -47,6 +47,12 @@ pub enum Message {
         priority: u16,
         payloads: Vec<(content::PayloadType, Vec<u8>)>,
     },
+    SyncClock {
+        seq_num: u8,
+        epoch_time_sec: u32,
+        zone_offset: u8,
+        tz: String,
+    },
 }
 
 impl Message {
@@ -135,6 +141,7 @@ impl Message {
             DebugMsg { .. } => 28,
             ShellCommand { .. } => 80,
             ContentMsg { .. } => 32,
+            SyncClock { .. } => 26,
             _ => todo!(),
         }
     }
@@ -187,7 +194,19 @@ impl Message {
                     out.extend((p.len() as u16).to_be_bytes());
                     out.extend(p);
                 }
-
+                out
+            }
+            SyncClock {
+                seq_num,
+                epoch_time_sec,
+                zone_offset,
+                tz,
+            } => {
+                let mut out = vec![*seq_num];
+                out.extend(epoch_time_sec.to_be_bytes());
+                out.push(*zone_offset);
+                out.push(tz.len() as u8);
+                out.extend(tz.as_bytes());
                 out
             }
             _ => todo!(),

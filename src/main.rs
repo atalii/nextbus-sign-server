@@ -39,9 +39,11 @@ fn handle(mut stream: TcpStream) -> io::Result<()> {
     let addr = stream.peer_addr()?;
     log::info!("Handling connection from: {addr}");
 
-    let msg = Message::ShellCommand {
-        command_id: 0,
-        command: "reboot".to_string(),
+    let msg = Message::SyncClock {
+        seq_num: 0,
+        epoch_time_sec: 1768874182,
+        zone_offset: 0,
+        tz: "GMT+00:00".to_string(),
     }
     .encode();
     stream.write_all(&msg)?;
