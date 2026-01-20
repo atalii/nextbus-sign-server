@@ -1,4 +1,4 @@
-use nextbus_sign_server::Message;
+use nextbus_sign_server::msg::Message;
 use std::io::{self, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
