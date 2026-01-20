@@ -1,5 +1,5 @@
 mod app_running;
-mod content;
+pub mod content;
 mod debug;
 mod pong;
 mod reboot;

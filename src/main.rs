@@ -1,4 +1,4 @@
-use nextbus_sign_server::msg::Message;
+use nextbus_sign_server::msg::{self, Message};
 use std::io::{self, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
@@ -39,11 +39,14 @@ fn handle(mut stream: TcpStream) -> io::Result<()> {
     let addr = stream.peer_addr()?;
     log::info!("Handling connection from: {addr}");
 
-    let msg = Message::SyncClock {
-        seq_num: 0,
-        epoch_time_sec: 1768874182,
-        zone_offset: 0,
-        tz: "GMT+00:00".to_string(),
+    let msg = Message::ContentMsg {
+        content_id: 0,
+        content_channel: 2,
+        count_impressions: false,
+        display_indefinitely: true,
+        booking_id: 0,
+        priority: 0,
+        payloads: vec![(msg::content::PayloadType::Msg, "Yay!".as_bytes().to_vec())],
     }
     .encode();
     stream.write_all(&msg)?;
