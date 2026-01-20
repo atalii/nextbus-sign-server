@@ -41,12 +41,39 @@ fn handle(mut stream: TcpStream) -> io::Result<()> {
 
     let msg = Message::ContentMsg {
         content_id: 0,
+        content_channel: 0,
+        count_impressions: false,
+        display_indefinitely: true,
+        booking_id: 0,
+        priority: 0,
+        payloads: vec![(msg::content::PayloadType::Msg, "ch0".as_bytes().to_vec())],
+    }
+    .encode();
+    stream.write_all(&msg)?;
+
+    let msg = Message::ContentMsg {
+        content_id: 0,
+        content_channel: 1,
+        count_impressions: false,
+        display_indefinitely: true,
+        booking_id: 0,
+        priority: 0,
+        payloads: vec![(msg::content::PayloadType::Msg, "ch1".as_bytes().to_vec())],
+    }
+    .encode();
+    stream.write_all(&msg)?;
+
+    let msg = Message::ContentMsg {
+        content_id: 0,
         content_channel: 2,
         count_impressions: false,
         display_indefinitely: true,
         booking_id: 0,
         priority: 0,
-        payloads: vec![(msg::content::PayloadType::Msg, "Yay!".as_bytes().to_vec())],
+        payloads: vec![(
+            msg::content::PayloadType::Msg,
+            "bullshit".as_bytes().to_vec(),
+        )],
     }
     .encode();
     stream.write_all(&msg)?;
