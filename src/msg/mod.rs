@@ -2,12 +2,14 @@ mod ack_content;
 mod app_running;
 mod auth_confirm;
 mod auth_request;
+mod cfg_params;
 pub mod content;
 pub mod content_delete;
 mod debug;
 mod firmware_code;
 mod pong;
 mod reboot;
+mod stop_cfg;
 
 use std::io::Read;
 
@@ -79,6 +81,40 @@ pub enum Message {
         address: [u8; 4],
         port: u16,
     },
+    GetCfgParam {
+        param: u8,
+    },
+    AckGetCfgParam {
+        param: u8,
+        error: u8,
+        value: u8,
+    },
+    SetCfgParam {
+        param: u8,
+        value: u8,
+    },
+    AckSetCfgParam {
+        param: u8,
+        error: u8,
+        value: u8,
+    },
+    ResetCfgParams,
+    AckResetCfgParams,
+    StopCfg {
+        stop_id: u8,
+        title: String,
+        phoneme: String,
+        route_tag: String,
+        snd_md5: String,
+        snd_url: String,
+        zero_countdown_msg: String,
+    },
+    AckStopCfg {
+        stop_id: u8,
+        error: u8,
+    },
+    ClearStopCfg,
+    AckClearStopCfg,
 }
 
 impl Message {
@@ -120,6 +156,16 @@ impl Message {
             36 => content_delete::new(payload),
             50 => auth_request::new(payload),
             52 => auth_confirm::new(payload),
+            20 => cfg_params::new_get(payload),
+            21 => cfg_params::new_get_ack(payload),
+            18 => cfg_params::new_set(payload),
+            19 => cfg_params::new_set_ack(payload),
+            22 => cfg_params::new_reset(),
+            23 => cfg_params::new_reset_ack(),
+            14 => stop_cfg::new(payload),
+            15 => stop_cfg::new_ack(payload),
+            16 => stop_cfg::new_clear(),
+            17 => stop_cfg::new_clear_ack(),
             x => todo!("unknown type: {x}"),
         })
     }
@@ -177,6 +223,16 @@ impl Message {
             FirmwareCode { .. } => 31,
             AuthRequest { .. } => 50,
             AuthConfirm { .. } => 52,
+            GetCfgParam { .. } => 20,
+            AckGetCfgParam { .. } => 21,
+            SetCfgParam { .. } => 18,
+            AckSetCfgParam { .. } => 19,
+            ResetCfgParams => 22,
+            AckResetCfgParams => 23,
+            StopCfg { .. } => 14,
+            AckStopCfg { .. } => 15,
+            ClearStopCfg => 16,
+            AckClearStopCfg => 17,
             _ => todo!(),
         }
     }
@@ -257,7 +313,7 @@ impl Message {
                 out.extend(code_chunk);
                 out
             }
-            AuthRequest { method } => method.to_be_bytes().to_vec(),
+            AuthRequest { method } => vec![*method],
             AuthConfirm {
                 conf_code,
                 address,
@@ -268,6 +324,55 @@ impl Message {
                 out.extend(port.to_be_bytes());
                 out
             }
+            GetCfgParam { param } => vec![*param],
+            AckGetCfgParam {
+                param,
+                error,
+                value,
+            } => vec![*param, *error, *value],
+            SetCfgParam { param, value } => vec![*param, *value],
+            AckSetCfgParam {
+                param,
+                error,
+                value,
+            } => vec![*param, *error, *value],
+            ResetCfgParams => vec![],
+            AckResetCfgParams => vec![],
+            StopCfg {
+                stop_id,
+                title,
+                phoneme,
+                route_tag,
+                snd_md5,
+                snd_url,
+                zero_countdown_msg,
+            } => {
+                let mut out = vec![*stop_id];
+
+                out.push(title.len() as u8);
+                out.push(phoneme.len() as u8);
+
+                out.extend(title.as_bytes());
+
+                out.extend(phoneme.as_bytes());
+
+                out.push(zero_countdown_msg.len() as u8);
+                out.extend(zero_countdown_msg.as_bytes());
+
+                out.push(route_tag.len() as u8);
+                out.extend(route_tag.as_bytes());
+
+                out.push(snd_md5.len() as u8);
+                out.extend(snd_md5.as_bytes());
+
+                out.push(snd_url.len() as u8);
+                out.extend(snd_url.as_bytes());
+
+                out
+            }
+            AckStopCfg { stop_id, error } => vec![*stop_id, *error],
+            ClearStopCfg => vec![],
+            AckClearStopCfg => vec![],
             _ => todo!(),
         }
     }
