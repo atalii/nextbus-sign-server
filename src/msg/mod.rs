@@ -7,6 +7,7 @@ pub mod content;
 pub mod content_delete;
 mod debug;
 mod firmware_code;
+pub mod ping;
 mod pong;
 mod reboot;
 mod stop_cfg;
@@ -168,6 +169,7 @@ impl Message {
             15 => stop_cfg::new_ack(payload),
             16 => stop_cfg::new_clear(),
             17 => stop_cfg::new_clear_ack(),
+            10 => ping::new(payload),
             x => {
                 return Err(DecodeError::UnknownMessage(x));
             }
