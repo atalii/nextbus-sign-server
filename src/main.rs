@@ -22,7 +22,7 @@ fn main() {
         let (s, r) = channel::unbounded();
         let r = Arc::new(r);
 
-        let sign_handler_t = thread::spawn(move || {
+        thread::spawn(move || {
             let listener = TcpListener::bind("0.0.0.0:4502").unwrap();
 
             for stream in listener.incoming() {
