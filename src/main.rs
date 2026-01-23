@@ -94,12 +94,26 @@ fn handle(stream: TcpStream, msg_ch: Arc<channel::Receiver<String>>) -> Result<(
                 }
             }
             recv(r) -> msg => match msg {
-                Ok(msg) => log::info!("Recv'd: {msg:?}"),
+                Ok(msg) => {
+                    log::info!("Recv'd: {msg:?}");
+                    if let Some(resp) = respond_to(msg) {
+                        if let Err(e) = s.send(resp) {
+                            log::error!("Failed to send sign message to channel: {e}");
+                        };
+                    }
+                },
                 Err(e) => {
                     log::error!("Failed to receive sign message from channel: {e}");
                     bail!("Sign server terminated.")
                 }
             }
         );
+    }
+}
+
+fn respond_to(msg: Message) -> Option<Message> {
+    match msg {
+        Message::Ping { seq_num } => Some(Message::Pong { seq_num }),
+        _ => None,
     }
 }

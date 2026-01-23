@@ -220,6 +220,7 @@ impl Message {
 
         match self {
             Ping { .. } => 10,
+            Pong { .. } => 11,
             Reboot => 6,
             DebugMsg { .. } => 28,
             ShellCommand { .. } => 80,
