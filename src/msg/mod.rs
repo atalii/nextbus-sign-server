@@ -3,6 +3,7 @@ mod app_running;
 mod auth_confirm;
 mod auth_request;
 mod cfg_params;
+mod clock;
 pub mod content;
 pub mod content_delete;
 mod debug;
@@ -69,6 +70,17 @@ pub enum Message {
         epoch_time_sec: u32,
         zone_offset: u8,
         tz: String,
+    },
+    AckSyncClock {
+        mark_id: u8,
+        error: u8,
+        drift_sec: u16,
+    },
+    MarkClock {
+        sequence: u8,
+    },
+    AckMarkClock {
+        seq_num: u8,
     },
     FirmwareCode {
         seq: u8,
@@ -159,6 +171,10 @@ impl Message {
             36 => content_delete::new(payload),
             50 => auth_request::new(payload),
             52 => auth_confirm::new(payload),
+            26 => clock::new_sync(payload),
+            27 => clock::new_sync_ack(payload),
+            24 => clock::new_mark(payload),
+            25 => clock::new_mark_ack(payload),
             20 => cfg_params::new_get(payload),
             21 => cfg_params::new_get_ack(payload),
             18 => cfg_params::new_set(payload),
@@ -226,7 +242,10 @@ impl Message {
             ShellCommand { .. } => 80,
             ContentMsg { .. } => 32,
             ContentDelete { .. } => 33,
+            MarkClock { .. } => 24,
+            AckMarkClock { .. } => 25,
             SyncClock { .. } => 26,
+            AckSyncClock { .. } => 27,
             FirmwareCode { .. } => 31,
             AuthRequest { .. } => 50,
             AuthConfirm { .. } => 52,
@@ -296,6 +315,8 @@ impl Message {
                 out
             }
             ContentDelete { content_id } => content_id.to_be_bytes().to_vec(),
+            MarkClock { sequence } => vec![*sequence],
+            AckMarkClock { seq_num } => vec![*seq_num],
             SyncClock {
                 seq_num,
                 epoch_time_sec,
@@ -307,6 +328,15 @@ impl Message {
                 out.push(*zone_offset);
                 out.push(tz.len() as u8);
                 out.extend(tz.as_bytes());
+                out
+            }
+            AckSyncClock {
+                mark_id,
+                error,
+                drift_sec,
+            } => {
+                let mut out = vec![*mark_id, *error];
+                out.extend(drift_sec.to_be_bytes());
                 out
             }
             FirmwareCode {
